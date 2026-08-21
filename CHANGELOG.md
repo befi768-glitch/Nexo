@@ -1,4 +1,11 @@
-# Nexo Companion V2.1
+# Nexo Companion V2.2
+
+## Multi-server
+- Register slash commands globally so one deployment works across all servers.
+- Keep guild, user, quest, badge, and memory data isolated by `guild.id`.
+- Initialize new server records when Nexo joins a server.
+
+## V2.1
 
 ## Fixes
 - Reduced Discord Gateway intents to the exact intents used by the current code: `Guilds`, `GuildMessages`, and `MessageContent`.
