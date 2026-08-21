@@ -2,12 +2,24 @@ require("dotenv").config();
 const { Client, GatewayIntentBits, Events } = require("discord.js");
 const db = require("./db");
 const config = require("./config");
-const { addUserXp, addCompanionXp, messageReward, questProgress, checkBadges, stage } = require("./systems");
+const { addUserXp, addCompanionXp, messageReward, questProgress, checkBadges } = require("./systems");
 const { handleCommand } = require("./commands");
 
 if (!process.env.DISCORD_TOKEN) throw new Error("DISCORD_TOKEN is required.");
 
-const client = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.MessageContent] });
+// Intents are intentionally minimal for Nexo V2.1.
+// - Guilds: slash-command interactions and guild context
+// - GuildMessages: receive message events in guild channels
+// - MessageContent: required because Nexo awards XP from normal message content
+// NOTE: Message Content is a privileged intent and must be enabled in the
+// Discord Developer Portal -> Bot -> Privileged Gateway Intents.
+const NEXO_INTENTS = [
+  GatewayIntentBits.Guilds,
+  GatewayIntentBits.GuildMessages,
+  GatewayIntentBits.MessageContent
+];
+
+const client = new Client({ intents: NEXO_INTENTS });
 
 async function milestoneCheck(guild) {
   const unlocked = [];
@@ -19,7 +31,13 @@ async function milestoneCheck(guild) {
   return unlocked;
 }
 
-client.once(Events.ClientReady, c => console.log(`Nexo V2 online as ${c.user.tag}`));
+client.once(Events.ClientReady, c => {
+  console.log(`Nexo V2.1 online as ${c.user.tag}`);
+  console.log(`Gateway intents: ${NEXO_INTENTS.join(", ")}`);
+});
+
+client.on(Events.Error, err => console.error("[DISCORD CLIENT]", err));
+client.on(Events.Warn, warning => console.warn("[DISCORD WARN]", warning));
 
 client.on(Events.InteractionCreate, async interaction => {
   if (!interaction.isChatInputCommand()) return;
@@ -65,5 +83,6 @@ process.on("SIGINT", () => shutdown("SIGINT"));
 (async () => {
   await db.init();
   console.log(`Persistence: ${db.hasPostgres ? "PostgreSQL" : "JSON fallback"}`);
+  console.log(`Environment: ${process.env.NODE_ENV || "development"}`);
   await client.login(process.env.DISCORD_TOKEN);
 })();
