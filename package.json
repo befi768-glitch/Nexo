@@ -1,6 +1,6 @@
 {
   "name": "nexo-companion",
-  "version": "2.1.0",
+  "version": "2.2.0",
   "description": "Nexo - a Discord server companion with quests, badges, evolution, memory and server progression.",
   "main": "src/index.js",
   "scripts": {
