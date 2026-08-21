@@ -5,9 +5,26 @@
  * matching image from assets/emojis. Until then, the friendly fallback keeps
  * every command readable in development and in servers without the pack.
  */
+const guildEmojiMaps = new Map();
+let activeGuildId = null;
+
 function customEmoji(name, fallback) {
-  const id = process.env[`NEXO_EMOJI_${name.toUpperCase()}_ID`];
+  const id = guildEmojiMaps.get(activeGuildId)?.[name]
+    || process.env[`NEXO_EMOJI_${name.toUpperCase()}_ID`];
   return id ? `<:${name}:${id}>` : fallback;
+}
+
+function setGuildEmojiMap(guildId, emojiIds) {
+  guildEmojiMaps.set(guildId, emojiIds);
+  activeGuildId = guildId;
+}
+
+function activateGuildEmoji(guildId, config) {
+  activeGuildId = guildId;
+  if (!config) return;
+  config.companion.stages.forEach(stage => { stage.icon = emoji[stage.id === "companion" ? "glow" : stage.id](); });
+  config.badges.forEach(badge => { badge.icon = emoji[badge.id === "first-contact" ? "spark" : badge.id === "level-5" ? "leaf" : badge.id === "level-10" ? "guardian" : badge.id === "daily-7" ? "streak" : "milestone"](); });
+  config.milestones.forEach(milestone => { milestone.icon = emoji[milestone.id === "interactions-500" ? "leaf" : milestone.id === "interactions-1000" ? "guardian" : "milestone"](); });
 }
 
 const emoji = {
@@ -37,4 +54,4 @@ const emoji = {
   twinkle: () => customEmoji("twinkle", "✨")
 };
 
-module.exports = { customEmoji, emoji };
+module.exports = { customEmoji, emoji, setGuildEmojiMap, activateGuildEmoji };
