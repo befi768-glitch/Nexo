@@ -4,6 +4,8 @@ const db = require("./db");
 const config = require("./config");
 const { addUserXp, addCompanionXp, messageReward, questProgress, checkBadges } = require("./systems");
 const { handleCommand } = require("./commands");
+const { provisionGuildEmoji } = require("./emoji-provisioner");
+const { activateGuildEmoji } = require("./emoji");
 
 if (!process.env.DISCORD_TOKEN) throw new Error("DISCORD_TOKEN is required.");
 
@@ -35,6 +37,9 @@ client.once(Events.ClientReady, c => {
   console.log(`Nexo V2.1 online as ${c.user.tag}`);
   console.log(`Gateway intents: ${NEXO_INTENTS.join(", ")}`);
   console.log(`Connected to ${c.guilds.cache.size} server(s).`);
+  for (const guild of c.guilds.cache.values()) {
+    provisionGuildEmoji(guild).catch(err => console.error(`[EMOJI] Provision failed for ${guild.id}`, err));
+  }
 });
 
 client.on(Events.Error, err => console.error("[DISCORD CLIENT]", err));
@@ -43,6 +48,7 @@ client.on(Events.Warn, warning => console.warn("[DISCORD WARN]", warning));
 client.on(Events.GuildCreate, async guild => {
   try {
     await db.getGuild(guild.id, config);
+    await provisionGuildEmoji(guild);
     console.log(`[SERVER JOINED] ${guild.name} (${guild.id})`);
   } catch (err) {
     console.error(`[SERVER INIT FAILED] ${guild.id}`, err);
@@ -55,7 +61,10 @@ client.on(Events.GuildDelete, guild => {
 
 client.on(Events.InteractionCreate, async interaction => {
   if (!interaction.isChatInputCommand()) return;
-  try { await handleCommand(interaction); }
+  try {
+    activateGuildEmoji(interaction.guildId, config);
+    await handleCommand(interaction);
+  }
   catch (err) {
     console.error(err);
     const payload = { content: "Nexo gặp lỗi khi xử lý lệnh.", ephemeral: true };
@@ -66,6 +75,7 @@ client.on(Events.InteractionCreate, async interaction => {
 client.on(Events.MessageCreate, async message => {
   if (!message.guild || message.author.bot || message.content.trim().length < 2) return;
   try {
+    activateGuildEmoji(message.guild.id, config);
     const guild = await db.getGuild(message.guild.id, config);
     const user = await db.getUser(message.guild.id, message.author.id);
     const reward = messageReward(user);
