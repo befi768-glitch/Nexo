@@ -31,6 +31,18 @@ Nexo is a Discord server companion: each server gets its own Nexo, while members
 - `/daily` — daily reward/streak
 - `/rename <name>` — rename Nexo (server owner only)
 
+## Nexo image emoji pack
+
+Nexo ships with a custom image emoji pack so command responses no longer rely
+on generic Unicode emoji. Upload the PNG files from `assets/emojis/png/` to the
+Discord server, then put each emoji ID in the matching `NEXO_EMOJI_<NAME>_ID`
+variable from `.env.example`.
+
+The registry in `src/emoji.js` renders Discord custom emoji markup when an ID
+is configured and uses a readable Unicode fallback when it is not. This keeps
+local development and servers without the pack functional while letting
+production responses use Nexo's own visual language.
+
 ## Local setup
 
 1. Install Node.js 20+.
