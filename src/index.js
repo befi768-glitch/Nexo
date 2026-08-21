@@ -34,10 +34,24 @@ async function milestoneCheck(guild) {
 client.once(Events.ClientReady, c => {
   console.log(`Nexo V2.1 online as ${c.user.tag}`);
   console.log(`Gateway intents: ${NEXO_INTENTS.join(", ")}`);
+  console.log(`Connected to ${c.guilds.cache.size} server(s).`);
 });
 
 client.on(Events.Error, err => console.error("[DISCORD CLIENT]", err));
 client.on(Events.Warn, warning => console.warn("[DISCORD WARN]", warning));
+
+client.on(Events.GuildCreate, async guild => {
+  try {
+    await db.getGuild(guild.id, config);
+    console.log(`[SERVER JOINED] ${guild.name} (${guild.id})`);
+  } catch (err) {
+    console.error(`[SERVER INIT FAILED] ${guild.id}`, err);
+  }
+});
+
+client.on(Events.GuildDelete, guild => {
+  console.log(`[SERVER LEFT] ${guild.name} (${guild.id}) - data retained.`);
+});
 
 client.on(Events.InteractionCreate, async interaction => {
   if (!interaction.isChatInputCommand()) return;
