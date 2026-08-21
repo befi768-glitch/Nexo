@@ -38,10 +38,10 @@ on generic Unicode emoji. Upload the PNG files from `assets/emojis/png/` to the
 Discord server, then put each emoji ID in the matching `NEXO_EMOJI_<NAME>_ID`
 variable from `.env.example`.
 
-The registry in `src/emoji.js` renders Discord custom emoji markup when an ID
-is configured and uses a readable Unicode fallback when it is not. This keeps
-local development and servers without the pack functional while letting
-production responses use Nexo's own visual language.
+When Nexo starts, it automatically creates any missing image emoji in every
+server where the bot has `Manage Expressions`. It then uses the new custom
+emoji IDs in responses. The registry still uses a readable Unicode fallback
+when Discord denies creation, so the bot remains functional.
 
 ## Local setup
 
