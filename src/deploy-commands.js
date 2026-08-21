@@ -7,10 +7,10 @@ async function main() {
     throw new Error("Thiếu DISCORD_TOKEN hoặc CLIENT_ID.");
   }
   const rest = new REST({ version: "10" }).setToken(process.env.DISCORD_TOKEN);
-  const route = process.env.GUILD_ID
-    ? Routes.applicationGuildCommands(process.env.CLIENT_ID, process.env.GUILD_ID)
-    : Routes.applicationCommands(process.env.CLIENT_ID);
-  await rest.put(route, { body: commandBuilders });
-  console.log(`Registered ${commandBuilders.length} ${process.env.GUILD_ID ? "guild" : "global"} commands.`);
+  // Global commands make the same command set available in every server
+  // where the bot is installed. GUILD_ID is intentionally not used here:
+  // guild-scoped registration would limit the bot to one server.
+  await rest.put(Routes.applicationCommands(process.env.CLIENT_ID), { body: commandBuilders });
+  console.log(`Registered ${commandBuilders.length} global commands for all Nexo servers.`);
 }
 main().catch(e => { console.error(e); process.exit(1); });
