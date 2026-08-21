@@ -1,11 +1,13 @@
+const { emoji } = require("./emoji");
+
 module.exports = {
   companion: {
     defaultName: "Nexo",
     stages: [
-      { minLevel: 1, id: "spark", name: "Spark", icon: "🌱", description: "Nexo vừa thức tỉnh." },
-      { minLevel: 5, id: "companion", name: "Companion", icon: "✨", description: "Nexo bắt đầu gắn kết với cộng đồng." },
-      { minLevel: 10, id: "guardian", name: "Guardian", icon: "🌌", description: "Nexo trở thành người bảo hộ của server." },
-      { minLevel: 20, id: "astral", name: "Astral", icon: "🌠", description: "Nexo đạt trạng thái Astral." }
+      { minLevel: 1, id: "spark", name: "Spark", icon: emoji.spark(), description: "Nexo vừa thức tỉnh." },
+      { minLevel: 5, id: "companion", name: "Companion", icon: emoji.glow(), description: "Nexo bắt đầu gắn kết với cộng đồng." },
+      { minLevel: 10, id: "guardian", name: "Guardian", icon: emoji.guardian(), description: "Nexo trở thành người bảo hộ của server." },
+      { minLevel: 20, id: "astral", name: "Astral", icon: emoji.astral(), description: "Nexo đạt trạng thái Astral." }
     ]
   },
   xp: {
@@ -21,15 +23,15 @@ module.exports = {
     { id: "profile-1", name: "Làm quen", description: "Xem profile của chính bạn.", type: "profile", target: 1, reward: 40 }
   ],
   badges: [
-    { id: "first-contact", name: "First Contact", icon: "🌱", description: "Tương tác với Nexo lần đầu." },
-    { id: "level-5", name: "Growing", icon: "🌿", description: "Đạt Level 5." },
-    { id: "level-10", name: "Guardian", icon: "🌌", description: "Đạt Level 10." },
-    { id: "daily-7", name: "Consistent", icon: "📅", description: "Điểm danh 7 ngày." },
-    { id: "server-100", name: "First Milestone", icon: "🏁", description: "Server đạt 100 tương tác." }
+    { id: "first-contact", name: "First Contact", icon: emoji.spark(), description: "Tương tác với Nexo lần đầu." },
+    { id: "level-5", name: "Growing", icon: emoji.leaf(), description: "Đạt Level 5." },
+    { id: "level-10", name: "Guardian", icon: emoji.guardian(), description: "Đạt Level 10." },
+    { id: "daily-7", name: "Consistent", icon: emoji.streak(), description: "Điểm danh 7 ngày." },
+    { id: "server-100", name: "First Milestone", icon: emoji.milestone(), description: "Server đạt 100 tương tác." }
   ],
   milestones: [
-    { id: "interactions-100", target: 100, name: "First Milestone", icon: "🏁", description: "Server đạt 100 tương tác." },
-    { id: "interactions-500", target: 500, name: "Growing Community", icon: "🌿", description: "Server đạt 500 tương tác." },
-    { id: "interactions-1000", target: 1000, name: "Established", icon: "🌌", description: "Server đạt 1.000 tương tác." }
+    { id: "interactions-100", target: 100, name: "First Milestone", icon: emoji.milestone(), description: "Server đạt 100 tương tác." },
+    { id: "interactions-500", target: 500, name: "Growing Community", icon: emoji.leaf(), description: "Server đạt 500 tương tác." },
+    { id: "interactions-1000", target: 1000, name: "Established", icon: emoji.guardian(), description: "Server đạt 1.000 tương tác." }
   ]
 };
