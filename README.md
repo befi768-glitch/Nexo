@@ -1,4 +1,4 @@
-# Nexo Companion V2.1
+# Nexo Companion V2.2
 
 Nexo is a Discord server companion: each server gets its own Nexo, while members earn XP, complete quests, unlock badges, and contribute to Nexo's evolution and server memory.
 
@@ -15,6 +15,7 @@ Nexo is a Discord server companion: each server gets its own Nexo, while members
 - `/rename` for server owners to rename Nexo
 - PostgreSQL support for Railway/production
 - JSON fallback for local development without a database
+- Multi-server support with isolated data per Discord server
 - Safer XP cooldown and message-length checks
 - Graceful shutdown and database connection handling
 
@@ -35,7 +36,7 @@ Nexo is a Discord server companion: each server gets its own Nexo, while members
 1. Install Node.js 20+.
 2. `npm install`
 3. Copy `.env.example` to `.env`.
-4. Fill `DISCORD_TOKEN`, `CLIENT_ID`, `GUILD_ID`.
+4. Fill `DISCORD_TOKEN` and `CLIENT_ID`.
 5. `npm start` (the `prestart` hook registers guild slash commands automatically).
 
 If `DATABASE_URL` is empty, Nexo uses `data/database.json` locally.
@@ -46,13 +47,12 @@ Railway detects Node projects and normally uses `npm start` as the start command
 
 For production persistence, add a PostgreSQL service in Railway and provide its `DATABASE_URL` to Nexo. Do not rely on the local JSON file for production persistence.
 
-Railway runs `npm start`; the package `prestart` hook registers the guild slash commands before the bot process starts. Keep `CLIENT_ID` and `GUILD_ID` configured on Railway.
+Railway runs `npm start`; the package `prestart` hook registers global slash commands before the bot process starts. Global commands are shared by every server where the bot is installed and may take a few minutes to appear after the first deployment.
 
 Set these Railway variables:
 
 - `DISCORD_TOKEN`
 - `CLIENT_ID`
-- `GUILD_ID` (optional after switching to global command deployment; V2 keeps guild deployment for fast testing)
 - `DATABASE_URL`
 - `NODE_ENV=production`
 
@@ -60,7 +60,7 @@ Do not commit `.env` or your bot token to GitHub.
 
 ## Discord setup
 
-Nexo V2.1 intentionally requests only three gateway intents:
+Nexo V2.2 intentionally requests only three gateway intents:
 
 - `Guilds`
 - `GuildMessages`
