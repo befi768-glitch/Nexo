@@ -1,3 +1,13 @@
+# Changelog
+
+## 2.4.0
+- Added `/settings` for per-server XP, daily, channel, color, language and emoji configuration.
+- Added `/data export`, `/data backup`, `/data reset-user`, and protected server reset.
+- Added schema versioning and soft migration for JSON/PostgreSQL records.
+- Added scheduled/startup backups.
+- Added milestone-next progress display.
+- Added per-server XP cooldown/range overrides.
+
 # Nexo Companion V2.3.0
 
 ## Foundation
