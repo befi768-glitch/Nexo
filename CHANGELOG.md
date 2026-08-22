@@ -1,6 +1,15 @@
 # Changelog
 
-## 2.4.0
+## 2.6.0 — Identity & Economy
+- Added Coin wallet and cosmetic shop.
+- Added `/shop`, `/buy`, `/inventory`, `/equip`, `/gift`.
+- Added profile cosmetic/title display.
+- Added Coin rewards from valid interactions and daily bonus.
+- Added lightweight personality reactions with per-server cooldown.
+- Added level-up and server milestone announcements.
+- Added schema v4 migration for economy/cosmetics.
+
+2.4.0
 - Added `/settings` for per-server XP, daily, channel, color, language and emoji configuration.
 - Added `/data export`, `/data backup`, `/data reset-user`, and protected server reset.
 - Added schema versioning and soft migration for JSON/PostgreSQL records.
