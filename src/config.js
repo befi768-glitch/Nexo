@@ -23,6 +23,10 @@ module.exports = {
       minMeaningfulChars: 3
     }
   },
+  settings: {
+    allowedLanguages: ["vi", "en"],
+    colorPresets: { default: "#63c5da", gold: "#f2c94c", purple: "#8c7ae6", green: "#8ad6b8" }
+  },
   quests: [
     { id: "chat-10", name: "Người trò chuyện", description: "Gửi 10 tin nhắn hợp lệ hôm nay.", type: "chat", target: 10, reward: 100 },
     { id: "daily-1", name: "Điểm danh", description: "Nhận phần thưởng /daily.", type: "daily", target: 1, reward: 60 },
