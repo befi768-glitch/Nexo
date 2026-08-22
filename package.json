@@ -1,14 +1,16 @@
 {
   "name": "nexo-companion",
-  "version": "2.4.0",
-  "description": "Nexo - a Discord server companion with onboarding, leaderboards, XP progression, quests, badges, evolution, server settings, milestones and backups.",
+  "version": "2.6.0",
+  "description": "Nexo - Vietnamese-first Discord companion with progression, server settings, personality, cosmetics and light economy.",
   "main": "src/index.js",
   "scripts": {
     "start": "node src/index.js",
     "prestart": "node src/deploy-commands.js",
     "deploy": "node src/deploy-commands.js"
   },
-  "engines": { "node": ">=20" },
+  "engines": {
+    "node": ">=20"
+  },
   "dependencies": {
     "discord.js": "^14.19.3",
     "dotenv": "^16.4.7",
