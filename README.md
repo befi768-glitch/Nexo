@@ -1,8 +1,8 @@
-# Nexo v2.4
+# Nexo v2.6
 
-Nexo is a Vietnamese-first Discord server companion built around **interaction → XP → level → unlock → server progression**.
+Nexo is a Vietnamese-first Discord server companion built around **interaction → XP → level → unlock → customize → social progression**.
 
-## v2.4 Foundation → Server
+## v2.6 Identity → Economy
 - `/help` — onboarding/help
 - `/profile` — member progression
 - `/leaderboard` — XP, streak, badges
