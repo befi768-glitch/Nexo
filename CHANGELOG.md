@@ -1,20 +1,13 @@
-# Nexo Companion V2.2
+# Nexo Companion V2.3.0
 
-## Multi-server
-- Register slash commands globally so one deployment works across all servers.
-- Keep guild, user, quest, badge, and memory data isolated by `guild.id`.
-- Initialize new server records when Nexo joins a server.
+## Foundation
+- Added `/help` with a short Vietnamese onboarding guide and command map.
+- Nexo now attempts to send the same onboarding embed when it joins a server.
+- Added `/leaderboard` with XP, streak and badge rankings.
+- Added XP anti-spam protection for repeated messages, burst spam and low-information messages.
+- Added a richer `/profile` with avatar, XP progress bar, badge count and evolution context.
+- Added backwards-compatible data normalization for existing JSON/PostgreSQL records.
+- Bumped package version to `2.3.0`.
 
-## V2.1
-
-## Fixes
-- Reduced Discord Gateway intents to the exact intents used by the current code: `Guilds`, `GuildMessages`, and `MessageContent`.
-- Removed unused intent-related assumptions such as `GuildMembers`/`GuildPresences`; they are not requested by Nexo.
-- Added clearer startup logging for the active intents and environment.
-- Added Discord client `error` and `warn` logging.
-- Added an npm `prestart` hook so Railway registers guild slash commands automatically before `npm start`.
-- Updated the example environment to `NODE_ENV=production`.
-- Updated deployment documentation with the exact Discord Developer Portal requirement for Message Content Intent.
-
-## Important
-`MessageContent` remains necessary because Nexo awards XP from normal message content. If Discord Developer Portal has Message Content Intent disabled, Discord will reject the gateway connection with `Used disallowed intents`.
+## Design goal
+V2.3 completes the Foundation loop before economy or AI: interact → XP → level → unlock → show progress.
