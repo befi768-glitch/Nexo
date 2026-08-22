@@ -15,7 +15,13 @@ module.exports = {
     messageMax: 15,
     messageCooldownMs: 60_000,
     daily: 50,
-    questDefault: 100
+    questDefault: 100,
+    antiSpam: {
+      repeatWindow: 5,
+      burstWindowMs: 20_000,
+      maxMessagesInBurst: 4,
+      minMeaningfulChars: 3
+    }
   },
   quests: [
     { id: "chat-10", name: "Người trò chuyện", description: "Gửi 10 tin nhắn hợp lệ hôm nay.", type: "chat", target: 10, reward: 100 },
