@@ -18,14 +18,15 @@ function addCompanionXp(guild, amount) {
   return levels;
 }
 
-function messageReward(user, content = "") {
+function messageReward(user, content = "", guildSettings = {}) {
   const now = Date.now();
   const normalized = content.trim().toLowerCase().replace(/\s+/g, " ");
   const recent = user.xpAntiSpam || { recentHashes: [], recentMessages: [], lastRewardAt: 0 };
   user.xpAntiSpam = recent;
 
   // Hard cooldown: keeps XP farming predictable and cheap.
-  if (now - (user.lastMessageXp || 0) < config.xp.messageCooldownMs) return 0;
+  const cooldownMs = guildSettings.cooldownMs ?? config.xp.messageCooldownMs;
+  if (now - (user.lastMessageXp || 0) < cooldownMs) return 0;
 
   // Ignore obvious repeated messages. Keep a short rolling fingerprint window.
   if (normalized && recent.recentHashes.includes(normalized)) return 0;
@@ -45,7 +46,9 @@ function messageReward(user, content = "") {
 
   user.lastMessageXp = now;
   recent.lastRewardAt = now;
-  return Math.floor(Math.random() * (config.xp.messageMax - config.xp.messageMin + 1)) + config.xp.messageMin;
+  const min = guildSettings.xpMin ?? config.xp.messageMin;
+  const max = guildSettings.xpMax ?? config.xp.messageMax;
+  return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
 function today() { return new Date().toISOString().slice(0, 10); }
