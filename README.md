@@ -1,87 +1,61 @@
-# Nexo Companion V2.2
+# Nexo Companion V2.3
 
 Nexo is a Discord server companion: each server gets its own Nexo, while members earn XP, complete quests, unlock badges, and contribute to Nexo's evolution and server memory.
 
-## V2.1 features
+## V2.3 Foundation
 
-- Per-server Nexo companion
+- Vietnamese `/help` onboarding and command guide
+- Automatic onboarding message when Nexo joins a server
 - Member XP, levels and daily streaks
 - Daily quests with claimable rewards
 - Badge system
 - Nexo evolution stages
-- Server-wide progress
-- Server milestones
+- Server-wide progress and milestones
 - Server memory/event timeline
-- `/rename` for server owners to rename Nexo
+- `/leaderboard` for XP, streak and badges
+- Anti-spam XP protection for repeated/burst/low-information messages
+- Rich `/profile` with avatar, progress bar, streak, badges and evolution context
+- `/rename` for server owners/admins to rename Nexo
 - PostgreSQL support for Railway/production
 - JSON fallback for local development without a database
 - Multi-server support with isolated data per Discord server
-- Safer XP cooldown and message-length checks
-- Graceful shutdown and database connection handling
+- Custom image emoji provisioning with readable fallbacks
 
 ## Commands
 
-- `/companion` — Nexo status and evolution
+- `/help` — hướng dẫn bắt đầu
+- `/companion` — Nexo status và evolution
 - `/profile [user]` — member profile
-- `/quest` — today's quests and progress
+- `/leaderboard [type]` — XP, streak hoặc badges
+- `/quest list` — today's quests
 - `/quest claim` — claim completed quest rewards
 - `/badges` — badge collection
 - `/progress` — server progress and milestones
 - `/memory` — recent server memories
 - `/daily` — daily reward/streak
-- `/rename <name>` — rename Nexo (server owner only)
+- `/rename <name>` — rename Nexo
 
-## Nexo image emoji pack
+## XP anti-spam
 
-Nexo ships with a custom image emoji pack so command responses no longer rely
-on generic Unicode emoji. Upload the PNG files from `assets/emojis/png/` to the
-Discord server, then put each emoji ID in the matching `NEXO_EMOJI_<NAME>_ID`
-variable from `.env.example`.
+Nexo vẫn dùng cooldown XP, đồng thời V2.3 bỏ thưởng cho:
+- Tin nhắn lặp lại trong cửa sổ ngắn
+- Burst spam quá nhanh
+- Nội dung quá ngắn/ít thông tin
 
-When Nexo starts, it automatically creates any missing image emoji in every
-server where the bot has `Manage Expressions`. It then uses the new custom
-emoji IDs in responses. The registry still uses a readable Unicode fallback
-when Discord denies creation, so the bot remains functional.
+Các giới hạn nằm trong `src/config.js` để có thể cân bằng tiếp ở các bản sau.
 
 ## Local setup
 
-1. Install Node.js 20+.
+1. Node.js 20+
 2. `npm install`
-3. Copy `.env.example` to `.env`.
-4. Fill `DISCORD_TOKEN` and `CLIENT_ID`.
-5. `npm start` (the `prestart` hook registers guild slash commands automatically).
+3. Copy `.env.example` → `.env`
+4. Điền `DISCORD_TOKEN` và `CLIENT_ID`
+5. `npm start`
 
-If `DATABASE_URL` is empty, Nexo uses `data/database.json` locally.
+Nếu `DATABASE_URL` trống, Nexo dùng `data/database.json`.
 
-## Railway + GitHub
+## Production
 
-Railway detects Node projects and normally uses `npm start` as the start command. You can also explicitly set the start command to `npm start` in the service settings.
+Railway + PostgreSQL được hỗ trợ. Đặt `DISCORD_TOKEN`, `CLIENT_ID`, `DATABASE_URL` và `NODE_ENV=production`.
 
-For production persistence, add a PostgreSQL service in Railway and provide its `DATABASE_URL` to Nexo. Do not rely on the local JSON file for production persistence.
-
-Railway runs `npm start`; the package `prestart` hook registers global slash commands before the bot process starts. Global commands are shared by every server where the bot is installed and may take a few minutes to appear after the first deployment.
-
-Set these Railway variables:
-
-- `DISCORD_TOKEN`
-- `CLIENT_ID`
-- `DATABASE_URL`
-- `NODE_ENV=production`
-
-Do not commit `.env` or your bot token to GitHub.
-
-## Discord setup
-
-Nexo V2.2 intentionally requests only three gateway intents:
-
-- `Guilds`
-- `GuildMessages`
-- `MessageContent`
-
-`MessageContent` is a **Privileged Gateway Intent**. You must enable **Message Content Intent** in Discord Developer Portal → your application → **Bot** → **Privileged Gateway Intents**. Nexo does **not** request `GuildMembers` or `GuildPresences`, because the current code does not need them.
-
-If `Message Content Intent` is disabled, Discord will close the gateway connection with `Error: Used disallowed intents`. This is a Discord application setting, not a Railway or PostgreSQL error.
-
-## Notes
-
-V2.1 intentionally keeps the economy out. The goal is to validate the Companion loop before adding coins, shops or inventories.
+Discord Developer Portal phải bật **Message Content Intent**, vì XP được tính từ message content.
