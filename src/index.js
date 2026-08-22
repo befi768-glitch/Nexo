@@ -6,6 +6,7 @@ const { addUserXp, addCompanionXp, messageReward, questProgress, checkBadges } =
 const { handleCommand } = require("./commands");
 const { provisionGuildEmoji } = require("./emoji-provisioner");
 const { activateGuildEmoji } = require("./emoji");
+const { helpEmbed } = require("./commands");
 
 if (!process.env.DISCORD_TOKEN) throw new Error("DISCORD_TOKEN is required.");
 
@@ -22,6 +23,13 @@ const NEXO_INTENTS = [
 ];
 
 const client = new Client({ intents: NEXO_INTENTS });
+
+async function sendOnboarding(guild) {
+  const target = guild.systemChannel || guild.channels.cache.find(ch => ch.isTextBased() && ch.permissionsFor(guild.members.me)?.has("SendMessages"));
+  if (!target) return false;
+  await target.send({ embeds: [helpEmbed()] });
+  return true;
+}
 
 async function milestoneCheck(guild) {
   const unlocked = [];
@@ -47,8 +55,12 @@ client.on(Events.Warn, warning => console.warn("[DISCORD WARN]", warning));
 
 client.on(Events.GuildCreate, async guild => {
   try {
-    await db.getGuild(guild.id, config);
+    const record = await db.getGuild(guild.id, config);
     await provisionGuildEmoji(guild);
+    if (!record.onboardingSent) {
+      record.onboardingSent = await sendOnboarding(guild);
+      await db.saveGuild(record);
+    }
     console.log(`[SERVER JOINED] ${guild.name} (${guild.id})`);
   } catch (err) {
     console.error(`[SERVER INIT FAILED] ${guild.id}`, err);
@@ -78,8 +90,8 @@ client.on(Events.MessageCreate, async message => {
     activateGuildEmoji(message.guild.id, config);
     const guild = await db.getGuild(message.guild.id, config);
     const user = await db.getUser(message.guild.id, message.author.id);
-    const reward = messageReward(user);
-    if (!reward) return;
+    const reward = messageReward(user, message.content);
+    if (!reward) { await db.saveUser(user); return; }
     addUserXp(user, reward);
     addCompanionXp(guild, Math.max(1, Math.floor(reward / 2)));
     guild.totalInteractions += 1;
