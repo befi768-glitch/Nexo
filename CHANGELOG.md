@@ -1,5 +1,16 @@
 # Changelog
 
+## v2.7.0 — Hardening & Polish
+- Fixed PostgreSQL Coin spending with an atomic conditional UPDATE, preventing double-spend races between concurrent purchases/gifts.
+- Made Coin crediting atomic on PostgreSQL.
+- Added optional S3-compatible remote backup uploads for production persistence.
+- Made backup directory configurable through `BACKUP_DIR`.
+- Added custom emoji aliases for Coin, shop, inventory, gift and milestone/trophy UI.
+- Added vi/en localization for onboarding/help, profile, settings, economy and data backup responses.
+- Raised schema version to 5 with backward-compatible user migration.
+
+# Changelog
+
 ## 2.6.0 — Identity & Economy
 - Added Coin wallet and cosmetic shop.
 - Added `/shop`, `/buy`, `/inventory`, `/equip`, `/gift`.
@@ -30,3 +41,10 @@
 
 ## Design goal
 V2.3 completes the Foundation loop before economy or AI: interact → XP → level → unlock → show progress.
+
+## 2.7.1 — Nexo Emoji Identity Polish
+- Replaced generic Unicode fallbacks with a cohesive branded Nexo image-emoji pack.
+- Added dedicated 128px transparent assets for progression, profile, quest, economy, status and personality states.
+- Provisioner now uploads `nexo_*` emojis to avoid collisions with unrelated server emoji.
+- Removed broad aliasing so important UI states have their own visual identity.
+- Updated personality and economy UI to prefer branded emoji throughout.

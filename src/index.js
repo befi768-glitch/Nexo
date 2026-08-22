@@ -25,10 +25,10 @@ const NEXO_INTENTS = [
 const client = new Client({ intents: NEXO_INTENTS });
 const personalityCooldowns = new Map();
 
-async function sendOnboarding(guild) {
+async function sendOnboarding(guild, settings) {
   const target = guild.systemChannel || guild.channels.cache.find(ch => ch.isTextBased() && ch.permissionsFor(guild.members.me)?.has("SendMessages"));
   if (!target) return false;
-  await target.send({ embeds: [helpEmbed()] });
+  await target.send({ embeds: [helpEmbed(settings)] });
   return true;
 }
 
@@ -43,7 +43,7 @@ async function milestoneCheck(guild) {
 }
 
 client.once(Events.ClientReady, c => {
-  console.log(`Nexo V2.6 online as ${c.user.tag}`);
+  console.log(`Nexo V2.7.1 online as ${c.user.tag}`);
   console.log(`Gateway intents: ${NEXO_INTENTS.join(", ")}`);
   console.log(`Connected to ${c.guilds.cache.size} server(s).`);
   for (const guild of c.guilds.cache.values()) {
@@ -59,7 +59,7 @@ client.on(Events.GuildCreate, async guild => {
     const record = await db.getGuild(guild.id, config);
     await provisionGuildEmoji(guild);
     if (!record.onboardingSent) {
-      record.onboardingSent = await sendOnboarding(guild);
+      record.onboardingSent = await sendOnboarding(guild, record.settings);
       await db.saveGuild(record);
     }
     console.log(`[SERVER JOINED] ${guild.name} (${guild.id})`);
@@ -112,7 +112,7 @@ client.on(Events.MessageCreate, async message => {
     }
     if (milestones.length) {
       const channel = guild.settings.levelUpChannelId ? guild.channels.cache.get(guild.settings.levelUpChannelId) : message.channel;
-      if (channel?.isTextBased()) channel.send(`${config.personality.milestone[0]} 🏆 **${milestones.map(m=>m.name).join(", ")}**`).catch(()=>{});
+      if (channel?.isTextBased()) channel.send(`${config.personality.milestone[0]} ${require("./emoji").emoji.trophy()} **${milestones.map(m=>m.name).join(", ")}**`).catch(()=>{});
     }
     if (message.mentions.has(client.user) && Date.now() - (personalityCooldowns.get(guild.id)||0) > config.personality.reactionCooldownMs) {
       personalityCooldowns.set(guild.id, Date.now());

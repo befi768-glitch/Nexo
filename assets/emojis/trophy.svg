@@ -6,6 +6,6 @@
 </defs>
 <g filter="url(#glow)"><circle cx="64" cy="64" r="43" fill="url(#core)" stroke="url(#rim)" stroke-width="3"/>
         <circle cx="64" cy="64" r="34" fill="none" stroke="#FFD36A" stroke-opacity=".22" stroke-width="2"/>
-        <path d="M42 38h44v28c0 14-10 23-22 28-12-5-22-14-22-28Z" fill="none" stroke="#F5FAFF" stroke-width="4"/><path d="m52 58 8 8 16-18" fill="none" stroke="#F5FAFF" stroke-width="5" stroke-linecap="round"/>
+        <path d="M45 39h38v21c0 15-8 24-19 29-11-5-19-14-19-29Z" fill="none" stroke="#F5FAFF" stroke-width="4"/><path d="M45 45H34c0 12 5 18 15 18M83 45h11c0 12-5 18-15 18M64 89v8M51 97h26" fill="none" stroke="#F5FAFF" stroke-width="4" stroke-linecap="round"/>
         <path d="M94 30l3 7 7 3-7 3-3 7-3-7-7-3 7-3Z" fill="#FFD36A" opacity=".95"/></g>
 </svg>

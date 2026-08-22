@@ -1,61 +1,38 @@
 const path = require("path");
-const { emoji, setGuildEmojiMap } = require("./emoji");
+const { setGuildEmojiMap } = require("./emoji");
 
-const emojiFiles = {
-  spark: "spark.png",
-  glow: "glow.png",
-  guardian: "guardian.png",
-  astral: "astral.png",
-  badge: "badge.png",
-  quest: "quest.png"
-};
-
-const aliases = {
-  seed: "spark",
-  twinkle: "glow",
-  xp: "glow",
-  reward: "glow",
-  companion: "guardian",
-  progress: "guardian",
-  moon: "astral",
-  profile: "quest",
-  chat: "quest",
-  memory: "quest",
-  wait: "quest",
-  sun: "glow",
-  leaf: "guardian",
-  streak: "badge",
-  locked: "badge",
-  milestone: "badge",
-  check: "badge",
-  empty: "quest"
-};
+// Dedicated branded assets. We intentionally provision every logical emoji
+// instead of aliasing several UI states to the same generic icon.
+const emojiNames = [
+  "spark", "glow", "guardian", "astral", "profile", "xp", "streak", "badge",
+  "reward", "quest", "locked", "progress", "companion", "chat", "milestone",
+  "memory", "wait", "sun", "leaf", "check", "empty", "seed", "moon", "twinkle",
+  "coin", "shop", "inventory", "gift", "trophy"
+];
 
 async function provisionGuildEmoji(guild) {
   const ids = {};
   const existing = new Map(guild.emojis.cache.map(item => [item.name, item]));
   const assetsDir = path.join(__dirname, "..", "assets", "emojis", "png");
 
-  for (const [name, file] of Object.entries(emojiFiles)) {
-    let custom = existing.get(name);
+  for (const name of emojiNames) {
+    const discordName = `nexo_${name}`;
+    let custom = existing.get(discordName);
     if (!custom) {
       try {
         custom = await guild.emojis.create({
-          attachment: path.join(assetsDir, file),
-          name,
-          reason: "Install Nexo image emoji pack"
+          attachment: path.join(assetsDir, `${name}.png`),
+          name: discordName,
+          reason: "Install Nexo branded image emoji pack"
         });
       } catch (error) {
-        console.warn(`[EMOJI] Could not create ${name} in ${guild.name}: ${error.message}`);
+        console.warn(`[EMOJI] Could not create ${discordName} in ${guild.name}: ${error.message}`);
         continue;
       }
     }
     ids[name] = custom.id;
   }
 
-  for (const [alias, source] of Object.entries(aliases)) {
-    if (ids[source]) ids[alias] = ids[source];
-  }
   setGuildEmojiMap(guild.id, ids);
   return ids;
 }

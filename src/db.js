@@ -1,12 +1,14 @@
 const fs = require("node:fs");
 const path = require("node:path");
 const { Pool } = require("pg");
+const https = require("node:https");
+const crypto = require("node:crypto");
 
 const hasPostgres = Boolean(process.env.DATABASE_URL);
 const DATA_DIR = path.join(process.cwd(), "data");
 const DATA_FILE = path.join(DATA_DIR, "database.json");
-const BACKUP_DIR = path.join(DATA_DIR, "backups");
-const SCHEMA_VERSION = 4;
+const BACKUP_DIR = process.env.BACKUP_DIR ? path.resolve(process.env.BACKUP_DIR) : path.join(DATA_DIR, "backups");
+const SCHEMA_VERSION = 5;
 const DEFAULT = { schemaVersion: SCHEMA_VERSION, guilds: {}, users: {}, memories: [] };
 let pool = null;
 let memoryData = loadJson();
@@ -53,10 +55,69 @@ async function listGuildUsers(guildId) { if (!pool) return Object.values(memoryD
 async function resetUser(guildId, userId) { const key = `${guildId}:${userId}`; if (!pool) { memoryData.users[key] = defaultUser(guildId, userId); saveJson(); return; } await pool.query("DELETE FROM users WHERE key=$1", [key]); }
 async function resetGuild(guildId, config) { if (!pool) { delete memoryData.guilds[guildId]; for (const key of Object.keys(memoryData.users)) if (key.startsWith(`${guildId}:`)) delete memoryData.users[key]; memoryData.memories = memoryData.memories.filter(m => m.guildId !== guildId); saveJson(); return; } await pool.query("DELETE FROM users WHERE data->>'guildId'=$1", [guildId]); await pool.query("DELETE FROM memories WHERE guild_id=$1", [guildId]); await pool.query("DELETE FROM guilds WHERE id=$1", [guildId]); await getGuild(guildId, config); }
 async function exportGuild(guildId, config) { const guild = await getGuild(guildId, config); const users = await listGuildUsers(guildId); const memories = await getMemories(guildId, 100); return { schemaVersion: SCHEMA_VERSION, exportedAt: new Date().toISOString(), guild, users, memories }; }
-async function backup(label = "manual") { const payload = hasPostgres ? { schemaVersion: SCHEMA_VERSION, exportedAt: new Date().toISOString(), guilds: {}, users: {}, memories: [] } : memoryData; if (hasPostgres) { const guildRows = await pool.query("SELECT id,data FROM guilds"); const userRows = await pool.query("SELECT key,data FROM users"); const memoryRows = await pool.query("SELECT guild_id,data FROM memories ORDER BY id DESC"); for (const r of guildRows.rows) payload.guilds[r.id] = r.data; for (const r of userRows.rows) payload.users[r.key] = r.data; payload.memories = memoryRows.rows.map(r => ({ guildId: r.guild_id, ...r.data })); }
-  fs.mkdirSync(BACKUP_DIR, { recursive: true }); const file = path.join(BACKUP_DIR, `nexo-${label}-${new Date().toISOString().replace(/[:.]/g, "-")}.json`); fs.writeFileSync(file, JSON.stringify(payload, null, 2)); return file;
+function hmac(key, data) { return crypto.createHmac("sha256", key).update(data).digest(); }
+function sha256(data) { return crypto.createHash("sha256").update(data).digest("hex"); }
+async function uploadS3(filePath, objectKey) {
+  const endpoint = process.env.S3_ENDPOINT;
+  const bucket = process.env.S3_BUCKET;
+  const region = process.env.S3_REGION || "auto";
+  const accessKey = process.env.S3_ACCESS_KEY_ID;
+  const secretKey = process.env.S3_SECRET_ACCESS_KEY;
+  if (!endpoint || !bucket || !accessKey || !secretKey) return null;
+  const body = fs.readFileSync(filePath);
+  const url = new URL(endpoint);
+  const prefix = process.env.S3_PREFIX ? process.env.S3_PREFIX.replace(/^\/+|\/+$/g, "") + "/" : "";
+  const key = `${prefix}${objectKey}`.replace(/\/+/g, "/");
+  const host = url.host;
+  const encodedKey = key.split("/").map(encodeURIComponent).join("/");
+  const pathName = `${url.pathname.replace(/\/$/, "")}/${encodeURIComponent(bucket)}/${encodedKey}`.replace(/\/+/g, "/");
+  const now = new Date();
+  const amzDate = now.toISOString().replace(/[:-]|\.\d{3}/g, "");
+  const dateStamp = amzDate.slice(0, 8);
+  const payloadHash = sha256(body);
+  const headers = { host, "x-amz-content-sha256": payloadHash, "x-amz-date": amzDate, "content-type": "application/json" };
+  const canonicalHeaders = Object.keys(headers).sort().map(k => `${k}:${String(headers[k]).trim()}\n`).join("");
+  const signedHeaders = Object.keys(headers).sort().join(";");
+  const canonicalRequest = `PUT\n${pathName}\n\n${canonicalHeaders}\n${signedHeaders}\n${payloadHash}`;
+  const credentialScope = `${dateStamp}/${region}/s3/aws4_request`;
+  const stringToSign = `AWS4-HMAC-SHA256\n${amzDate}\n${credentialScope}\n${sha256(canonicalRequest)}`;
+  const signingKey = hmac(hmac(hmac(hmac(`AWS4${secretKey}`, dateStamp), region), "s3"), "aws4_request");
+  const signature = crypto.createHmac("sha256", signingKey).update(stringToSign).digest("hex");
+  headers.authorization = `AWS4-HMAC-SHA256 Credential=${accessKey}/${credentialScope}, SignedHeaders=${signedHeaders}, Signature=${signature}`;
+  return new Promise((resolve, reject) => {
+    const req = https.request({ hostname: url.hostname, port: url.port || 443, method: "PUT", path: pathName, headers }, res => {
+      let response = ""; res.on("data", c => response += c); res.on("end", () => { if (res.statusCode >= 200 && res.statusCode < 300) resolve(`${url.origin}/${bucket}/${key}`); else reject(new Error(`S3 upload failed (${res.statusCode}): ${response.slice(0, 300)}`)); });
+    });
+    req.on("error", reject); req.end(body);
+  });
 }
-async function addCoins(guildId, userId, amount) { const u = await getUser(guildId, userId); u.coins = Math.max(0, (u.coins || 0) + amount); await saveUser(u); return u.coins; }
-async function spendCoins(guildId, userId, amount) { const u = await getUser(guildId, userId); if ((u.coins || 0) < amount) return false; u.coins -= amount; await saveUser(u); return true; }
+
+async function backup(label = "manual") { const payload = hasPostgres ? { schemaVersion: SCHEMA_VERSION, exportedAt: new Date().toISOString(), guilds: {}, users: {}, memories: [] } : memoryData; if (hasPostgres) { const guildRows = await pool.query("SELECT id,data FROM guilds"); const userRows = await pool.query("SELECT key,data FROM users"); const memoryRows = await pool.query("SELECT guild_id,data FROM memories ORDER BY id DESC"); for (const r of guildRows.rows) payload.guilds[r.id] = r.data; for (const r of userRows.rows) payload.users[r.key] = r.data; payload.memories = memoryRows.rows.map(r => ({ guildId: r.guild_id, ...r.data })); }
+  fs.mkdirSync(BACKUP_DIR, { recursive: true });
+  const filename = `nexo-${label}-${new Date().toISOString().replace(/[:.]/g, "-")}.json`;
+  const file = path.join(BACKUP_DIR, filename);
+  fs.writeFileSync(file, JSON.stringify(payload, null, 2));
+  if (process.env.S3_ENDPOINT && process.env.S3_BUCKET) {
+    try { const remote = await uploadS3(file, filename); return { local: file, remote }; }
+    catch (error) { console.error(`[BACKUP] Remote upload failed: ${error.message}`); return { local: file, remote: null, remoteError: error.message }; }
+  }
+  return { local: file, remote: null };
+}
+async function addCoins(guildId, userId, amount) {
+  if (!Number.isInteger(amount) || amount <= 0) throw new Error("Coin amount must be a positive integer.");
+  const key = `${guildId}:${userId}`;
+  await getUser(guildId, userId);
+  if (!pool) { const u = normalizeUser(memoryData.users[key]); u.coins = Math.max(0, (u.coins || 0) + amount); memoryData.users[key] = u; saveJson(); return u.coins; }
+  const r = await pool.query(`UPDATE users SET data = jsonb_set(data, '{coins}', to_jsonb(COALESCE((data->>'coins')::bigint,0) + $2), true) WHERE key=$1 RETURNING (data->>'coins')::bigint AS coins`, [key, amount]);
+  return Number(r.rows[0]?.coins ?? 0);
+}
+async function spendCoins(guildId, userId, amount) {
+  if (!Number.isInteger(amount) || amount <= 0) return false;
+  const key = `${guildId}:${userId}`;
+  await getUser(guildId, userId);
+  if (!pool) { const u = normalizeUser(memoryData.users[key]); if ((u.coins || 0) < amount) return false; u.coins -= amount; memoryData.users[key] = u; saveJson(); return true; }
+  const r = await pool.query(`UPDATE users SET data = jsonb_set(data, '{coins}', to_jsonb((data->>'coins')::bigint - $2), true) WHERE key=$1 AND COALESCE((data->>'coins')::bigint,0) >= $2 RETURNING 1`, [key, amount]);
+  return r.rowCount === 1;
+}
 async function close() { if (pool) await pool.end(); }
 module.exports = { init, getGuild, saveGuild, getUser, saveUser, getLeaderboard, addMemory, getMemories, listGuildUsers, resetUser, resetGuild, exportGuild, backup, addCoins, spendCoins, close, hasPostgres, SCHEMA_VERSION, defaultSettings };

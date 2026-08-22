@@ -1,8 +1,8 @@
-# Nexo v2.6
+# Nexo v2.7
 
 Nexo is a Vietnamese-first Discord server companion built around **interaction → XP → level → unlock → customize → social progression**.
 
-## v2.6 Identity → Economy
+## v2.7 Hardening → Identity → Economy
 - `/help` — onboarding/help
 - `/profile` — member progression
 - `/leaderboard` — XP, streak, badges
@@ -12,6 +12,10 @@ Nexo is a Vietnamese-first Discord server companion built around **interaction �
 - XP anti-spam and per-server XP tuning
 - JSON fallback + PostgreSQL persistence
 - schema versioning and automatic backups
+- atomic PostgreSQL Coin spending (race-condition safe)
+- optional S3-compatible remote backup storage
+- custom emoji registry for economy/progression UI
+- vi/en localization for onboarding, profile, settings and economy UI
 
 ## Run
 1. Copy `.env.example` to `.env`.

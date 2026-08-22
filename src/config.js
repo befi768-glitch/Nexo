@@ -34,8 +34,8 @@ module.exports = {
     ]
   },
   personality: {
-    mentionReplies: ["Mình đây 👋", "Nexo đã nghe thấy.", "Có mặt. ✨", "Bạn gọi mình à?"],
-    levelUp: ["Level up! Bạn vừa tiến thêm một bước.", "Nexo thấy sự tiến bộ đó. ✨"],
+    mentionReplies: [`${emoji.chat()} Mình đây.`, `${emoji.companion()} Nexo đã nghe thấy.`, `${emoji.glow()} Có mặt.`, `${emoji.profile()} Bạn gọi mình à?`],
+    levelUp: [`${emoji.xp()} Level up! Bạn vừa tiến thêm một bước.`, `${emoji.glow()} Nexo thấy sự tiến bộ đó.`],
     milestone: ["Server vừa mở khóa một cột mốc mới!"],
     reactionCooldownMs: 120000
   },

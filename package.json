@@ -1,6 +1,6 @@
 {
   "name": "nexo-companion",
-  "version": "2.6.0",
+  "version": "2.7.1",
   "description": "Nexo - Vietnamese-first Discord companion with progression, server settings, personality, cosmetics and light economy.",
   "main": "src/index.js",
   "scripts": {

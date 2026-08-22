@@ -1,12 +1,12 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
 <defs>
  <radialGradient id="core" cx="35%" cy="25%" r="80%"><stop offset="0" stop-color="#28366D"/><stop offset=".55" stop-color="#171B45"/><stop offset="1" stop-color="#0A0D25"/></radialGradient>
- <linearGradient id="rim" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#5CEBFF"/><stop offset=".48" stop-color="#5CEBFF"/><stop offset="1" stop-color="#FF6FD8"/></linearGradient>
+ <linearGradient id="rim" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#5CEBFF"/><stop offset=".48" stop-color="#6E8BFF"/><stop offset="1" stop-color="#FF6FD8"/></linearGradient>
  <filter id="glow"><feGaussianBlur stdDeviation="3" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
 </defs>
 <g filter="url(#glow)"><path d="M38 62c0-20 12-34 26-34s26 14 26 34-12 34-26 34S38 82 38 62Z" fill="url(#core)" stroke="url(#rim)" stroke-width="3"/>
         <path d="M43 40 31 29l3 20M85 40l12-11-3 20" fill="#141A3A" stroke="url(#rim)" stroke-width="3" stroke-linejoin="round"/>
-        <circle cx="54" cy="60" r="4.5" fill="#5CEBFF"/><circle cx="74" cy="60" r="4.5" fill="#5CEBFF"/>
-        <path d="M64 38l5 18 18 5-18 5-5 18-5-18-18-5 18-5Z" fill="none" stroke="#F5FAFF" stroke-width="4" stroke-linejoin="round"/>
+        <circle cx="54" cy="60" r="4.5" fill="#6E8BFF"/><circle cx="74" cy="60" r="4.5" fill="#6E8BFF"/>
+        <path d="M53 76h22" stroke="#F5FAFF" stroke-width="3" stroke-linecap="round"/>
         <path d="M56 74c4 4 12 4 16 0" fill="none" stroke="#F5FAFF" stroke-width="3" stroke-linecap="round"/></g>
 </svg>
