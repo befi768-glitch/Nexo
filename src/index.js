@@ -42,7 +42,7 @@ async function milestoneCheck(guild) {
 }
 
 client.once(Events.ClientReady, c => {
-  console.log(`Nexo V2.1 online as ${c.user.tag}`);
+  console.log(`Nexo V2.4 online as ${c.user.tag}`);
   console.log(`Gateway intents: ${NEXO_INTENTS.join(", ")}`);
   console.log(`Connected to ${c.guilds.cache.size} server(s).`);
   for (const guild of c.guilds.cache.values()) {
@@ -90,7 +90,8 @@ client.on(Events.MessageCreate, async message => {
     activateGuildEmoji(message.guild.id, config);
     const guild = await db.getGuild(message.guild.id, config);
     const user = await db.getUser(message.guild.id, message.author.id);
-    const reward = messageReward(user, message.content);
+    if (!guild.settings.xpEnabled) return;
+    const reward = messageReward(user, message.content, guild.settings);
     if (!reward) { await db.saveUser(user); return; }
     addUserXp(user, reward);
     addCompanionXp(guild, Math.max(1, Math.floor(reward / 2)));
@@ -120,5 +121,7 @@ process.on("SIGINT", () => shutdown("SIGINT"));
   await db.init();
   console.log(`Persistence: ${db.hasPostgres ? "PostgreSQL" : "JSON fallback"}`);
   console.log(`Environment: ${process.env.NODE_ENV || "development"}`);
+  await db.backup("startup").catch(err => console.error("[BACKUP] startup failed", err));
+  setInterval(() => db.backup("scheduled").catch(err => console.error("[BACKUP] scheduled failed", err)), 6 * 60 * 60 * 1000).unref();
   await client.login(process.env.DISCORD_TOKEN);
 })();
