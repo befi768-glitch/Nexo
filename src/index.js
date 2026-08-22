@@ -23,6 +23,7 @@ const NEXO_INTENTS = [
 ];
 
 const client = new Client({ intents: NEXO_INTENTS });
+const personalityCooldowns = new Map();
 
 async function sendOnboarding(guild) {
   const target = guild.systemChannel || guild.channels.cache.find(ch => ch.isTextBased() && ch.permissionsFor(guild.members.me)?.has("SendMessages"));
@@ -42,7 +43,7 @@ async function milestoneCheck(guild) {
 }
 
 client.once(Events.ClientReady, c => {
-  console.log(`Nexo V2.4 online as ${c.user.tag}`);
+  console.log(`Nexo V2.6 online as ${c.user.tag}`);
   console.log(`Gateway intents: ${NEXO_INTENTS.join(", ")}`);
   console.log(`Connected to ${c.guilds.cache.size} server(s).`);
   for (const guild of c.guilds.cache.values()) {
@@ -93,7 +94,9 @@ client.on(Events.MessageCreate, async message => {
     if (!guild.settings.xpEnabled) return;
     const reward = messageReward(user, message.content, guild.settings);
     if (!reward) { await db.saveUser(user); return; }
+    const previousLevel = user.level;
     addUserXp(user, reward);
+    user.coins = (user.coins || 0) + 1;
     addCompanionXp(guild, Math.max(1, Math.floor(reward / 2)));
     guild.totalInteractions += 1;
     questProgress(user, "chat");
@@ -103,6 +106,18 @@ client.on(Events.MessageCreate, async message => {
       for (const m of milestones) await db.addMemory(guild.id, { title: m.name, text: m.description, icon: m.icon, createdAt: Date.now() });
     }
     await db.saveUser(user); await db.saveGuild(guild);
+    if (user.level > previousLevel) {
+      const channel = guild.settings.levelUpChannelId ? guild.channels.cache.get(guild.settings.levelUpChannelId) : message.channel;
+      if (channel?.isTextBased()) channel.send(`${config.personality.levelUp[Math.floor(Math.random()*config.personality.levelUp.length)]} ${message.author} đạt **Level ${user.level}**!`).catch(()=>{});
+    }
+    if (milestones.length) {
+      const channel = guild.settings.levelUpChannelId ? guild.channels.cache.get(guild.settings.levelUpChannelId) : message.channel;
+      if (channel?.isTextBased()) channel.send(`${config.personality.milestone[0]} 🏆 **${milestones.map(m=>m.name).join(", ")}**`).catch(()=>{});
+    }
+    if (message.mentions.has(client.user) && Date.now() - (personalityCooldowns.get(guild.id)||0) > config.personality.reactionCooldownMs) {
+      personalityCooldowns.set(guild.id, Date.now());
+      message.channel.send(config.personality.mentionReplies[Math.floor(Math.random()*config.personality.mentionReplies.length)]).catch(()=>{});
+    }
     if (badges.length) console.log(`[BADGE] ${message.author.tag}: ${badges.map(b => b.name).join(", ")}`);
     if (milestones.length) console.log(`[MILESTONE] ${guild.id}: ${milestones.map(m => m.name).join(", ")}`);
   } catch (err) { console.error("message handler error", err); }
