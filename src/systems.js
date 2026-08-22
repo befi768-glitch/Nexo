@@ -3,25 +3,48 @@ const config = require("./config");
 function xpNeeded(level) { return 100 + ((level - 1) * 50); }
 
 function addUserXp(user, amount) {
-  user.xp += amount;
+  user.xp += Math.max(0, amount);
   let levels = 0;
   while (user.xp >= xpNeeded(user.level)) { user.xp -= xpNeeded(user.level); user.level += 1; levels++; }
   return levels;
 }
 
 function addCompanionXp(guild, amount) {
-  guild.companion.xp += amount;
-  guild.totalXp += amount;
+  guild.companion.xp += Math.max(0, amount);
+  guild.totalXp += Math.max(0, amount);
   let levels = 0;
   while (guild.companion.xp >= xpNeeded(guild.companion.level)) { guild.companion.xp -= xpNeeded(guild.companion.level); guild.companion.level += 1; levels++; }
   guild.companion.stageId = [...config.companion.stages].reverse().find(s => guild.companion.level >= s.minLevel).id;
   return levels;
 }
 
-function messageReward(user) {
+function messageReward(user, content = "") {
   const now = Date.now();
-  if (now - user.lastMessageXp < config.xp.messageCooldownMs) return 0;
+  const normalized = content.trim().toLowerCase().replace(/\s+/g, " ");
+  const recent = user.xpAntiSpam || { recentHashes: [], recentMessages: [], lastRewardAt: 0 };
+  user.xpAntiSpam = recent;
+
+  // Hard cooldown: keeps XP farming predictable and cheap.
+  if (now - (user.lastMessageXp || 0) < config.xp.messageCooldownMs) return 0;
+
+  // Ignore obvious repeated messages. Keep a short rolling fingerprint window.
+  if (normalized && recent.recentHashes.includes(normalized)) return 0;
+  if (normalized) {
+    recent.recentHashes.push(normalized);
+    recent.recentHashes = recent.recentHashes.slice(-config.xp.antiSpam.repeatWindow);
+  }
+
+  // Burst protection: too many messages in a short window should not become a farm.
+  recent.recentMessages = recent.recentMessages.filter(t => now - t < config.xp.antiSpam.burstWindowMs);
+  recent.recentMessages.push(now);
+  if (recent.recentMessages.length > config.xp.antiSpam.maxMessagesInBurst) return 0;
+
+  // Very low-information spam gets no XP.
+  const compact = normalized.replace(/[^\p{L}\p{N}]+/gu, "");
+  if (compact.length < config.xp.antiSpam.minMeaningfulChars) return 0;
+
   user.lastMessageXp = now;
+  recent.lastRewardAt = now;
   return Math.floor(Math.random() * (config.xp.messageMax - config.xp.messageMin + 1)) + config.xp.messageMin;
 }
 
