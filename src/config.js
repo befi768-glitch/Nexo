@@ -23,6 +23,22 @@ module.exports = {
       minMeaningfulChars: 3
     }
   },
+  economy: {
+    dailyBonus: 10,
+    shop: [
+      { id: "frame-neon", name: "Neon Frame", type: "frame", price: 300, description: "Khung profile neon." },
+      { id: "frame-astral", name: "Astral Frame", type: "frame", price: 600, description: "Khung profile Astral." },
+      { id: "title-veteran", name: "Veteran", type: "title", price: 450, description: "Danh hiệu Veteran." },
+      { id: "title-explorer", name: "Explorer", type: "title", price: 250, description: "Danh hiệu Explorer." },
+      { id: "emoji-spark", name: "Spark Emoji", type: "emoji", price: 200, description: "Trang trí Spark cho profile." }
+    ]
+  },
+  personality: {
+    mentionReplies: ["Mình đây 👋", "Nexo đã nghe thấy.", "Có mặt. ✨", "Bạn gọi mình à?"],
+    levelUp: ["Level up! Bạn vừa tiến thêm một bước.", "Nexo thấy sự tiến bộ đó. ✨"],
+    milestone: ["Server vừa mở khóa một cột mốc mới!"],
+    reactionCooldownMs: 120000
+  },
   settings: {
     allowedLanguages: ["vi", "en"],
     colorPresets: { default: "#63c5da", gold: "#f2c94c", purple: "#8c7ae6", green: "#8ad6b8" }
