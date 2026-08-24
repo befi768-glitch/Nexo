@@ -7,7 +7,7 @@ import { FOREST_EVENT, applyChoice } from "./game/choices.js";
 import { runForestBattle } from "./game/combat.js";
 
 const token = process.env.DISCORD_TOKEN;
-if (!token) throw new Error("Thiếu biến DISCORD_TOKEN trên Railway Variables");
+if (!token) throw new Error("Thiếu DISCORD_TOKEN trong .env");
 
 const PREFIX = "-";
 const client = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.MessageContent] });
@@ -45,7 +45,7 @@ client.on(Events.MessageCreate, async message => {
       const existing = await getPlayer(id);
       if (existing) return void await message.reply("Bạn đã bắt đầu hành trình rồi. Dùng `-profile` để xem nhân vật.");
       const player = await createPlayer(id, message.author.username);
-      return void await message.reply(`🌟 **Hành trình bắt đầu!**\n\n👤 ${player.name}\n❤️ ${player.hp}/${player.maxHp}\n💰 ${player.coin} Coin\n\nBạn đã nhận 3 starter card. Dùng \\`-adventure\\` để bắt đầu.`);
+      return void await message.reply(`🌟 **Hành trình bắt đầu!**\n\n👤 ${player.name}\n❤️ ${player.hp}/${player.maxHp}\n💰 ${player.coin} Coin\n\nBạn đã nhận 3 starter card. Dùng \`-adventure\` để bắt đầu.`);
     }
 
     const player = await getPlayer(id);
