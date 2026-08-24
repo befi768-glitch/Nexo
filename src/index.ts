@@ -7,7 +7,7 @@ import { FOREST_EVENT, applyChoice } from "./game/choices.js";
 import { runForestBattle } from "./game/combat.js";
 
 const token = process.env.DISCORD_TOKEN;
-if (!token) throw new Error("Thiếu DISCORD_TOKEN trong .env");
+if (!token) throw new Error("Thiếu biến DISCORD_TOKEN trên Railway Variables");
 
 const PREFIX = "-";
 const client = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.MessageContent] });
