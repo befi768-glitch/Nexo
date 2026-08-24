@@ -7,29 +7,19 @@ export function xpForNextLevel(level: number) {
 export async function getPlayer(discordId: string) {
   return db.player.findUnique({
     where: { discordId },
-    include: {
-      cards: { include: { card: true } }
-    }
+    include: { cards: { include: { card: true } } }
   });
 }
 
 export async function createPlayer(discordId: string, name: string) {
-  const player = await db.player.create({
+  return db.player.create({
     data: {
       discordId,
       name,
-      cards: {
-        create: [
-          { cardId: "ember" },
-          { cardId: "iron_guard" },
-          { cardId: "wanderer" }
-        ]
-      }
+      cards: { create: [{ cardId: "ember" }, { cardId: "iron_guard" }, { cardId: "wanderer" }] }
     },
     include: { cards: { include: { card: true } } }
   });
-
-  return player;
 }
 
 export async function addProgress(discordId: string, xp: number, coin: number) {
@@ -52,14 +42,6 @@ export async function addProgress(discordId: string, xp: number, coin: number) {
 
   return db.player.update({
     where: { discordId },
-    data: {
-      level,
-      xp: totalXp,
-      coin: { increment: coin },
-      maxHp,
-      hp: maxHp,
-      attack,
-      defense
-    }
+    data: { level, xp: totalXp, coin: { increment: coin }, maxHp, hp: maxHp, attack, defense }
   });
 }

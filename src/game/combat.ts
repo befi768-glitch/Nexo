@@ -1,3 +1,4 @@
+import { db } from "../db.js";
 import { addProgress, getPlayer } from "./character.js";
 
 export async function runForestBattle(discordId: string) {
@@ -7,7 +8,6 @@ export async function runForestBattle(discordId: string) {
   let enemyHp = 80;
   let playerHp = player.hp;
   const log: string[] = [];
-
   const deck = player.cards.slice(0, 3);
 
   while (enemyHp > 0 && playerHp > 0) {
@@ -24,12 +24,7 @@ export async function runForestBattle(discordId: string) {
   }
 
   if (playerHp <= 0) {
-    await import("../db.js").then(({ db }) =>
-      db.player.update({
-        where: { discordId },
-        data: { hp: player.maxHp }
-      })
-    );
+    await db.player.update({ where: { discordId }, data: { hp: player.maxHp } });
     return { won: false, log };
   }
 
