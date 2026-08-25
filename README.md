@@ -1,61 +1,116 @@
-# PQT RPG V1 — Prefix + PostgreSQL
+# PQT RPG V2 — Core RPG Expansion
 
-Bản này sửa lỗi `The URL must start with the protocol file:` bằng cách chuyển database từ SQLite sang PostgreSQL.
+V2 được xây trên chính baseline V1 chạy ổn trên Railway.
+
+## V2 có gì mới
+
+### 1. 🔒 Adventure ownership
+- Button Adventure được khóa theo người tạo event.
+- Người khác bấm button sẽ nhận thông báo `Đây không phải Adventure của bạn.`
+- Event được lưu trong `AdventureSession`.
+- Một event chỉ được xử lý một lần.
+
+### 2. 🌍 World State
+Lựa chọn của người chơi trong server bắt đầu ảnh hưởng trạng thái khu vực:
+- Forest Trust
+- Forest Danger
+- Forest Rumor
+- Secret Path
+
+Dùng:
+```text
+-world
+```
+
+World State được lưu theo Discord server (`guildId`), nên lựa chọn của một người có thể làm thay đổi trạng thái chung của server.
+
+### 3. 🃏 Card progression
+Mỗi card giờ có:
+- Level
+- Bond
+- Battles
+- Memory
+
+Sau mỗi trận, card trong deck nhận Battle/Bond progress. Mỗi 5 battle, card tăng 1 level và cập nhật Memory.
+
+### 4. ⚔️ Deck system
+Deck có 3 slot.
+
+```text
+-deck
+-deck set <cardId> <slot>
+```
+
+Combat chỉ sử dụng card đang nằm trong 3 slot deck.
+
+### 5. 🛒 Card acquisition
+V2 giải quyết một điểm thiếu của V1: người chơi đã có Coin nhưng chưa có vòng lặp sở hữu card mới.
+
+```text
+-shop
+-buy <cardId>
+```
+
+Một số card mới được thêm vào shop với giá khác nhau.
+
+### 6. ⚔️ PvE phản ứng với World State
+Forest Danger ảnh hưởng HP và damage của quái vật.
 
 ## Commands
 
-- `-start`
-- `-profile`
-- `-cards`
-- `-adventure`
-- `-battle`
-- `-help`
-
-Adventure vẫn dùng Discord Buttons.
-
-## Environment
-
-Tạo `.env`:
-
-```env
-DISCORD_TOKEN=your_bot_token
-DATABASE_URL="postgresql://USER:PASSWORD@HOST:5432/DATABASE?schema=public"
+```text
+-start
+-profile
+-cards
+-deck
+-deck set <cardId> <slot>
+-shop
+-buy <cardId>
+-adventure
+-world
+-battle
+-help
 ```
 
-**Quan trọng:** dùng chính `DATABASE_URL` PostgreSQL mà nền tảng deploy của bạn cung cấp. Không dùng `file:./dev.db`.
+## Database
 
-## Deploy
+PostgreSQL + Prisma.
 
-Build command:
+V2 mở rộng schema nhưng giữ nguyên các model V1 để `prisma db push` cập nhật database hiện tại.
 
+## Railway
+
+Giữ nguyên:
+
+```env
+DISCORD_TOKEN=...
+DATABASE_URL=...
+```
+
+Build:
 ```bash
 npm install
 npm run build
 ```
 
-Start command:
-
+Start:
 ```bash
 npm start
 ```
 
-`npm start` sẽ chạy `prisma db push` trước khi khởi động bot để V1 tự đồng bộ schema database. Đây là cách tiện cho prototype V1; khi production ổn định, nên chuyển sang Prisma migrations.
+`npm start` chạy `prisma db push` trước khi bot khởi động.
 
 ## Discord
 
-Vì bot dùng prefix, bật:
+Bật:
 **Bot → Privileged Gateway Intents → Message Content Intent**
 
-## V1 gồm
+## Chưa đưa vào V2
 
-- Character
-- Level / XP / HP / Stats
-- Coin
-- Card Collection
-- Starter Cards
-- PvE combat
-- Choice system
-- Reputation
-- Choice history
+- PvP matchmaking
+- Guild system
+- Market người chơi
+- Card Fusion ẩn
+- Hidden cards
 
-Chưa có PvP, Guild, Faction, Market hoặc Hidden Fusion.
+Các hệ thống này nên được xây sau khi core loop V2 ổn định.
