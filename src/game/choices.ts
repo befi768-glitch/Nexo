@@ -21,6 +21,7 @@ export type Adventure = {
   description: string;
   minDanger?: number;
   minTrust?: number;
+  maxDanger?: number;
   choices: AdventureChoice[];
 };
 
@@ -153,7 +154,8 @@ export async function applyChoice(discordId: string, adventureId: string, choice
         const owned = await tx.playerCard.findUnique({ where: { playerId_cardId: { playerId: player.id, cardId: card.id } } });
         if (!owned) {
           discoveredCard = await tx.playerCard.create({
-            data: { playerId: player.id, cardId: card.id, memory: `Discovered through ${adventure.title}` }
+            data: { playerId: player.id, cardId: card.id, memory: `Discovered through ${adventure.title}` },
+            include: { card: true }
           });
         }
       }
