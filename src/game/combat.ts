@@ -1,37 +1,50 @@
 import { db } from "../db.js";
-import { addProgress, getPlayer, recordCardBattle } from "./character.js";
+import { addProgress, getPlayer } from "./character.js";
 
-export async function runForestBattle(discordId: string, guildId: string | null) {
+export async function runForestBattle(discordId: string) {
   const player = await getPlayer(discordId);
   if (!player) throw new Error("PLAYER_NOT_FOUND");
+  if (!player.cards.length) throw new Error("NO_CARDS");
 
-  const deck = player.cards.filter(pc => pc.deckSlot !== null).sort((a, b) => (a.deckSlot ?? 99) - (b.deckSlot ?? 99));
-  if (deck.length === 0) throw new Error("EMPTY_DECK");
-
-  const world = guildId ? await db.worldState.upsert({ where: { guildId }, update: {}, create: { guildId } }) : null;
-  let enemyHp = 80 + Math.min(30, (world?.forestDanger ?? 0));
+  let enemyHp = 80;
   let playerHp = player.hp;
   const log: string[] = [];
+  const deck = player.cards;
+  const used = new Set<string>();
 
   while (enemyHp > 0 && playerHp > 0) {
     const card = deck[Math.floor(Math.random() * deck.length)];
-    const damage = Math.max(1, card.card.attack + player.attack + (card.level - 1) * 2 - 8);
+    used.add(card.id);
+    const damage = Math.max(1, card.card.attack + player.attack - 8);
     enemyHp -= damage;
     log.push(`${card.card.emoji} ${card.card.name} gây ${damage} sát thương.`);
-
     if (enemyHp <= 0) break;
 
-    const enemyDamage = Math.max(1, 12 + Math.floor((world?.forestDanger ?? 0) / 10) - player.defense);
+    const enemyDamage = Math.max(1, 12 - player.defense);
     playerHp -= enemyDamage;
     log.push(`👹 Quái vật gây ${enemyDamage} sát thương.`);
   }
 
-  await recordCardBattle(player.id, deck.map(pc => pc.id));
-
   if (playerHp <= 0) {
     await db.player.update({ where: { discordId }, data: { hp: player.maxHp } });
-    return { won: false, log, usedCards: deck };
+    return { won: false, log };
   }
+
+  for (const playerCardId of used) {
+    const pc = await db.playerCard.findUnique({ where: { id: playerCardId } });
+    if (!pc) continue;
+    const newBattles = pc.battles + 1;
+    await db.playerCard.update({
+      where: { id: playerCardId },
+      data: {
+        battles: newBattles,
+        bond: { increment: 2 },
+        level: newBattles % 5 === 0 ? { increment: 1 } : undefined,
+        memory: `Đã cùng bạn chiến đấu ${newBattles} trận.`
+      }
+    });
+  }
+
   const reward = await addProgress(discordId, 45, 75);
-  return { won: true, log, reward, usedCards: deck };
+  return { won: true, log, reward };
 }

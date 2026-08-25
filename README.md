@@ -1,116 +1,73 @@
-# PQT RPG V2 — Core RPG Expansion
+# PQT RPG V2.5
 
-V2 được xây trên chính baseline V1 chạy ổn trên Railway.
+V2.5 tập trung vào 3 hệ thống lõi: **Dynamic World + Player Identity + Card Discovery**.
 
-## V2 có gì mới
+## Triết lý Card
 
-### 1. 🔒 Adventure ownership
-- Button Adventure được khóa theo người tạo event.
-- Người khác bấm button sẽ nhận thông báo `Đây không phải Adventure của bạn.`
-- Event được lưu trong `AdventureSession`.
-- Một event chỉ được xử lý một lần.
+`-start` **không phát Card**.
 
-### 2. 🌍 World State
-Lựa chọn của người chơi trong server bắt đầu ảnh hưởng trạng thái khu vực:
-- Forest Trust
-- Forest Danger
-- Forest Rumor
-- Secret Path
-
-Dùng:
-```text
--world
-```
-
-World State được lưu theo Discord server (`guildId`), nên lựa chọn của một người có thể làm thay đổi trạng thái chung của server.
-
-### 3. 🃏 Card progression
-Mỗi card giờ có:
-- Level
-- Bond
-- Battles
-- Memory
-
-Sau mỗi trận, card trong deck nhận Battle/Bond progress. Mỗi 5 battle, card tăng 1 level và cập nhật Memory.
-
-### 4. ⚔️ Deck system
-Deck có 3 slot.
-
-```text
--deck
--deck set <cardId> <slot>
-```
-
-Combat chỉ sử dụng card đang nằm trong 3 slot deck.
-
-### 5. 🛒 Card acquisition
-V2 giải quyết một điểm thiếu của V1: người chơi đã có Coin nhưng chưa có vòng lặp sở hữu card mới.
-
-```text
--shop
--buy <cardId>
-```
-
-Một số card mới được thêm vào shop với giá khác nhau.
-
-### 6. ⚔️ PvE phản ứng với World State
-Forest Danger ảnh hưởng HP và damage của quái vật.
+Card không được bán trong shop. Card phải được **khám phá thông qua Adventure, điều kiện thế giới và các lựa chọn**.
 
 ## Commands
 
-```text
--start
--profile
--cards
--deck
--deck set <cardId> <slot>
--shop
--buy <cardId>
--adventure
--world
--battle
--help
-```
+- `-start` — tạo nhân vật, không có Card
+- `-profile` — xem nhân vật + Identity
+- `-cards` — collection Card đã khám phá
+- `-adventure` — Adventure động
+- `-world` — xem World State
+- `-battle` — PvE
+- `-help`
 
-## Database
+## V2.5
 
-PostgreSQL + Prisma.
+### Dynamic World
 
-V2 mở rộng schema nhưng giữ nguyên các model V1 để `prisma db push` cập nhật database hiện tại.
+Mỗi server có Forest Danger và Forest Trust. Lựa chọn của người chơi làm thay đổi thế giới.
+
+### Player Identity
+
+Không chọn class cố định. Lựa chọn tích lũy các xu hướng:
+
+- Compassion
+- Ruthlessness
+- Curiosity
+- Knowledge
+
+Profile hiển thị Identity nổi trội nhất.
+
+### Card Discovery
+
+Starter card cũ đã trở thành **Discovery Card**. Người chơi mới bắt đầu với collection trống.
+
+Adventure đầu tiên luôn là `Con đường đầu tiên`, cho người chơi khám phá một trong ba Card cơ bản.
+
+Các Card hiếm hơn xuất hiện qua điều kiện Adventure:
+
+- Moon Seer
+- Thorn Beast
+- Frost Mage
+- Ancient Guardian
+- Blood Moon
+
+### PvE
+
+Nếu người chơi chưa có Card, `-battle` bị khóa và hướng dẫn họ khám phá Card trước.
+
+Card tham chiến nhận:
+
+- Battles +1
+- Bond +2
+- mỗi 5 trận: Level +1
+- Memory được cập nhật
 
 ## Railway
 
-Giữ nguyên:
+Giữ nguyên PostgreSQL của V1:
 
-```env
-DISCORD_TOKEN=...
-DATABASE_URL=...
-```
-
-Build:
 ```bash
 npm install
 npm run build
-```
-
-Start:
-```bash
 npm start
 ```
 
-`npm start` chạy `prisma db push` trước khi bot khởi động.
-
-## Discord
-
-Bật:
-**Bot → Privileged Gateway Intents → Message Content Intent**
-
-## Chưa đưa vào V2
-
-- PvP matchmaking
-- Guild system
-- Market người chơi
-- Card Fusion ẩn
-- Hidden cards
-
-Các hệ thống này nên được xây sau khi core loop V2 ổn định.
+`start` chạy `prisma db push` trước khi bot khởi động.

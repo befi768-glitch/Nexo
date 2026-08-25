@@ -8,22 +8,25 @@ datasource db {
 }
 
 model Player {
-  id          String       @id @default(cuid())
-  discordId   String       @unique
-  name        String
-  level       Int          @default(1)
-  xp          Int          @default(0)
-  hp          Int          @default(100)
-  maxHp       Int          @default(100)
-  attack      Int          @default(10)
-  defense     Int          @default(5)
-  coin        Int          @default(100)
-  reputation  Int          @default(0)
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
-  cards       PlayerCard[]
-  choices     ChoiceLog[]
-  adventures  AdventureSession[]
+  id            String       @id @default(cuid())
+  discordId     String       @unique
+  name          String
+  level         Int          @default(1)
+  xp            Int          @default(0)
+  hp            Int          @default(100)
+  maxHp         Int          @default(100)
+  attack        Int          @default(10)
+  defense       Int          @default(5)
+  coin          Int          @default(100)
+  reputation    Int          @default(0)
+  compassion    Int          @default(0)
+  ruthlessness  Int          @default(0)
+  curiosity     Int          @default(0)
+  knowledge     Int          @default(0)
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+  cards         PlayerCard[]
+  choices       ChoiceLog[]
 }
 
 model Card {
@@ -36,7 +39,6 @@ model Card {
   defense     Int
   energy      Int
   skill       String
-  price       Int          @default(0)
   playerCards PlayerCard[]
 }
 
@@ -48,45 +50,30 @@ model PlayerCard {
   bond      Int      @default(0)
   battles   Int      @default(0)
   memory    String   @default("")
-  deckSlot  Int?
   player    Player   @relation(fields: [playerId], references: [id], onDelete: Cascade)
   card      Card     @relation(fields: [cardId], references: [id], onDelete: Cascade)
 
   @@unique([playerId, cardId])
-  @@unique([playerId, deckSlot])
-}
-
-model WorldState {
-  id             String   @id @default(cuid())
-  guildId        String   @unique
-  forestTrust    Int      @default(0)
-  forestDanger   Int      @default(0)
-  forestRumor    Int      @default(0)
-  discoveredPath Boolean  @default(false)
-  updatedAt      DateTime @updatedAt
-}
-
-model AdventureSession {
-  id         String   @id @default(cuid())
-  messageId  String   @unique
-  playerId   String
-  guildId    String?
-  eventId    String
-  resolved   Boolean  @default(false)
-  createdAt  DateTime @default(now())
-  resolvedAt DateTime?
-  player     Player   @relation(fields: [playerId], references: [id], onDelete: Cascade)
-
-  @@index([playerId, resolved])
 }
 
 model ChoiceLog {
+  id        String   @id @default(cuid())
+  playerId  String
+  eventId   String
+  choiceId  String
+  result    String
+  createdAt DateTime @default(now())
+  player    Player   @relation(fields: [playerId], references: [id], onDelete: Cascade)
+
+  @@index([playerId, createdAt])
+  @@index([playerId, eventId])
+}
+
+model WorldState {
   id           String   @id @default(cuid())
-  playerId     String
-  eventId      String
-  choiceId     String
-  result       String
-  worldEffect  String   @default("")
+  guildId      String   @unique
+  forestDanger Int      @default(20)
+  forestTrust  Int      @default(50)
+  updatedAt    DateTime @updatedAt
   createdAt    DateTime @default(now())
-  player       Player   @relation(fields: [playerId], references: [id], onDelete: Cascade)
 }
