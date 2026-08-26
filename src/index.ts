@@ -148,7 +148,8 @@ client.on(Events.MessageCreate, async message => {
     if (error instanceof Error && error.message.startsWith("GAMEPLAY_LOCKED:")) {
       const until = error.message.slice("GAMEPLAY_LOCKED:".length);
       const ts = Math.floor(new Date(until).getTime()/1000);
-      return void await message.reply(`🔒 **Bạn đã kiệt sức.**\n\nToàn bộ cơ chế chơi của bạn đang bị khóa trong 12 giờ để hồi phục.\n❤️ HP: **0/${player?.maxHp ?? 100}**\n⏰ Mở lại <t:${ts}:F> (<t:${ts}:R>).`);
+      const currentPlayer = await getPlayer(id);
+      return void await message.reply(`🔒 **Bạn đã kiệt sức.**\n\nToàn bộ cơ chế chơi của bạn đang bị khóa trong 12 giờ để hồi phục.\n❤️ HP: **0/${currentPlayer?.maxHp ?? 100}**\n⏰ Mở lại <t:${ts}:F> (<t:${ts}:R>).`);
     }
     if (error instanceof Error && error.message === "NO_CARDS") return void await message.reply("⚔️ Bạn chưa có Card để chiến đấu. Hãy dùng `-adventure` và khám phá Card đầu tiên.");
     if (error instanceof Error && error.message === "ADVENTURE_ACTIVE") return void await message.reply("📖 Bạn đang có một Adventure đang chờ lựa chọn. Hãy chọn một đáp án trong 90 giây.");

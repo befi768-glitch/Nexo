@@ -104,7 +104,7 @@ async function eligibleAdventures(playerId:string,guildId:string) {
 }
 
 export async function getAdventureForPlayer(discordId:string,guildId:string) {
-  const player = await assertCanPlay(discordId)({where:{discordId}});
+  const player = await assertCanPlay(discordId);
   if (!player) throw new Error("PLAYER_NOT_FOUND");
   const existing = await db.adventureSession.findFirst({where:{playerId:player.id,status:"ACTIVE"}});
   if (existing) {
@@ -170,7 +170,7 @@ export async function applyChoice(discordId:string, adventureId:string, choiceId
   if (!known.has("ember") && adventureId === "road_lantern" && Math.random() < 0.07 + curiosityBonus) cardId = "ember";
   else if (!known.has("iron_guard") && adventureId === "wounded_stranger" && choiceId === "help" && Math.random() < 0.06 + curiosityBonus) cardId = "iron_guard";
   else if (!known.has("wanderer") && adventureId === "merchant_caravan" && choiceId === "watch" && Math.random() < 0.055 + curiosityBonus) cardId = "wanderer";
-  else if (world?.forestDanger >= 70 && mem.has("survived_blood_moon") && !known.has("blood_moon") && Math.random() < 0.08) cardId = "blood_moon";
+  else if ((world?.forestDanger ?? 0) >= 70 && mem.has("survived_blood_moon") && !known.has("blood_moon") && Math.random() < 0.08) cardId = "blood_moon";
   else if (mem.has("received_black_glass") && !known.has("moon_seer") && Math.random() < 0.05) cardId = "moon_seer";
   else if (mem.has("entered_crying_cave") && !known.has("thorn_beast") && Math.random() < 0.04) cardId = "thorn_beast";
 

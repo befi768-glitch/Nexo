@@ -3,7 +3,9 @@ import { addProgress, getPlayer } from "./character.js";
 import { assertCanPlay, lockForTwelveHours } from "./playerState.js";
 
 export async function runForestBattle(discordId: string) {
-  const player = await assertCanPlay(discordId);
+  await assertCanPlay(discordId);
+  const player = await getPlayer(discordId);
+  if (!player) throw new Error("PLAYER_NOT_FOUND");
   if (!player.cards.length) throw new Error("NO_CARDS");
 
   let enemyHp = 80;
