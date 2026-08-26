@@ -172,8 +172,9 @@ client.on(Events.InteractionCreate, async interaction => {
     const discovered = result.discoveredCard
       ? `\n\n🃏 **Một điều kỳ lạ đã được phát hiện.**\n${result.discoveredCard.card.emoji} **${result.discoveredCard.card.name}** — ${result.discoveredCard.card.rarity}\n${result.discoveredCard.card.description}`
       : "";
+    const lockTimestamp = result.lockedUntil ? Math.floor(result.lockedUntil.getTime() / 1000) : 0;
     const koText = result.ko
-      ? `\n\n💀 **HP của bạn đã về 0.**\n🔒 Toàn bộ cơ chế chơi đã bị khóa trong **12 giờ**.\n⏰ Mở lại <t:${Math.floor(new Date(result.lockedUntil).getTime()/1000)}:R>.`
+      ? `\n\n💀 **HP của bạn đã về 0.**\n🔒 Toàn bộ cơ chế chơi đã bị khóa trong **12 giờ**.\n⏰ Mở lại <t:${Math.floor(lockTimestamp)}:R>.`
       : `\n\n🧭 **Bạn đã hoàn thành lượt khám phá này.**\nDùng \`-adventure\` khi muốn tiếp tục.`;
     await interaction.update({
       embeds: [new EmbedBuilder().setTitle(result.ko ? "💀 Bạn đã kiệt sức" : "📜 Adventure hoàn tất").setDescription(
