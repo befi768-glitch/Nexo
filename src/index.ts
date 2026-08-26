@@ -1,5 +1,5 @@
 import "dotenv/config";
-import { ActionRowBuilder, ButtonBuilder, ButtonStyle, Client, EmbedBuilder, Events, GatewayIntentBits } from "discord.js";
+import { ActionRowBuilder, ButtonBuilder, ButtonStyle, Client, EmbedBuilder, Events, GatewayIntentBits, MessageFlags } from "discord.js";
 import { db } from "./db.js";
 import { seedCards } from "./game/cards.js";
 import { createPlayer, getPlayer } from "./game/character.js";
@@ -37,6 +37,11 @@ function helpText() {
 }
 
 function clamp(n: number) { return Math.max(0, Math.min(100, n)); }
+
+function isExpectedGameError(error: unknown) {
+  const message = error instanceof Error ? error.message : "";
+  return ["NO_CARDS", "ADVENTURE_ACTIVE", "NO_ADVENTURES", "NO_EXPLORATION", "ADVENTURE_EXPIRED", "ADVENTURE_ALREADY_DONE", "ADVENTURE_NOT_ACTIVE"].includes(message) || message.startsWith("GAMEPLAY_LOCKED:");
+}
 
 function identity(player: NonNullable<Awaited<ReturnType<typeof getPlayer>>>) {
   const scores = [
@@ -144,7 +149,7 @@ client.on(Events.MessageCreate, async message => {
 
     return void await message.reply(`❓ Không tìm thấy lệnh \`-${command}\`. Dùng \`-help\`.`);
   } catch (error) {
-    console.error(error);
+    if (!isExpectedGameError(error)) console.error(error);
     if (error instanceof Error && error.message.startsWith("GAMEPLAY_LOCKED:")) {
       const until = error.message.slice("GAMEPLAY_LOCKED:".length);
       const ts = Math.floor(new Date(until).getTime()/1000);
@@ -163,7 +168,7 @@ client.on(Events.InteractionCreate, async interaction => {
   if (!interaction.isButton() || !interaction.customId.startsWith("choice:")) return;
   const [, choiceId, ownerId, adventureId] = interaction.customId.split(":");
   if (interaction.user.id !== ownerId) {
-    await interaction.reply({ content: "🔒 Đây không phải Adventure của bạn.", ephemeral: true });
+    await interaction.reply({ content: "🔒 Đây không phải Adventure của bạn.", flags: MessageFlags.Ephemeral });
     return;
   }
   try {
@@ -184,7 +189,7 @@ client.on(Events.InteractionCreate, async interaction => {
       components: []
     });
   } catch (error) {
-    console.error(error);
+    if (!isExpectedGameError(error)) console.error(error);
     const e = error instanceof Error ? error.message : "";
     const msg = e === "ADVENTURE_EXPIRED" ? "⌛ Adventure này đã hết 90 giây. Dùng `-adventure` để khám phá tiếp." :
       e === "NO_EXPLORATION" ? "🧭 Bạn đã dùng hết lượt khám phá. Lượt sẽ hồi dần theo thời gian." :
