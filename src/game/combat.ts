@@ -1,9 +1,9 @@
 import { db } from "../db.js";
 import { addProgress, getPlayer } from "./character.js";
+import { assertCanPlay, lockForTwelveHours } from "./playerState.js";
 
 export async function runForestBattle(discordId: string) {
-  const player = await getPlayer(discordId);
-  if (!player) throw new Error("PLAYER_NOT_FOUND");
+  const player = await assertCanPlay(discordId);
   if (!player.cards.length) throw new Error("NO_CARDS");
 
   let enemyHp = 80;
@@ -26,8 +26,9 @@ export async function runForestBattle(discordId: string) {
   }
 
   if (playerHp <= 0) {
-    await db.player.update({ where: { discordId }, data: { hp: player.maxHp } });
-    return { won: false, log };
+    const lockedUntil = lockForTwelveHours();
+    await db.player.update({ where: { discordId }, data: { hp: 0, gameplayLockedUntil: lockedUntil } });
+    return { won: false, log, lockedUntil };
   }
 
   for (const playerCardId of used) {

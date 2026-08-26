@@ -1,73 +1,51 @@
-# PQT RPG V2.5
+# PQT RPG V2.8 — Living Adventure
 
-V2.5 tập trung vào 3 hệ thống lõi: **Dynamic World + Player Identity + Card Discovery**.
+## Core idea
+Adventure is no longer a linear chapter chain and no longer an infinite random farm.
 
-## Triết lý Card
+`-adventure` opens one exploration session. The player chooses once, the session ends, and the player must deliberately start another exploration.
 
-`-start` **không phát Card**.
+## Exploration charges
+- Maximum: 5
+- Each `-adventure` consumes 1 charge
+- +1 charge every 30 minutes, up to 5
+- No automatic next Adventure after a choice
 
-Card không được bán trong shop. Card phải được **khám phá thông qua Adventure, điều kiện thế giới và các lựa chọn**.
+## 90-second choice window
+- An Adventure session expires after 90 seconds.
+- Expired sessions do not count as completed.
+- The player must run `-adventure` again.
 
-## Commands
+## Dynamic Adventure Pool
+Adventure selection considers:
+- Adventures already completed by the player
+- World danger/trust
+- Player memories
+- Conditional requirements
+- Weighted rarity of events
 
-- `-start` — tạo nhân vật, không có Card
-- `-profile` — xem nhân vật + Identity
-- `-cards` — collection Card đã khám phá
-- `-adventure` — Adventure động
-- `-world` — xem World State
-- `-battle` — PvE
-- `-help`
+Completed Adventures do not repeat for that player.
 
-## V2.5
+## Card Discovery
+Cards are NOT direct Adventure rewards. Discovery is a separate rare check influenced by context, memory, world state and player identity.
 
-### Dynamic World
+Hidden/rare cards require specific conditions.
 
-Mỗi server có Forest Danger và Forest Trust. Lựa chọn của người chơi làm thay đổi thế giới.
+## Anti-farm principle
+There is no `A -> B -> C -> D` automatic chain and no infinite button loop. Progress requires starting another exploration and spending another exploration charge.
 
-### Player Identity
 
-Không chọn class cố định. Lựa chọn tích lũy các xu hướng:
+## V2.8.1 — Consequence-first Adventures
 
-- Compassion
-- Ruthlessness
-- Curiosity
-- Knowledge
+Mọi lựa chọn trong Adventure đều bắt buộc có ít nhất một mặt lợi và một mặt hại.
+- Không hiển thị trước toàn bộ cái giá của lựa chọn.
+- Sau khi chọn, bot mới công bố consequence thực tế.
+- Consequence có thể tác động Coin, HP, XP, Reputation, World Danger/Trust, Memory và Faction.
+- HP không giảm dưới 1 bởi Adventure.
+- World Danger/Trust luôn được clamp trong 0–100.
+- Choice được claim atomic trong transaction, tránh double-claim.
 
-Profile hiển thị Identity nổi trội nhất.
 
-### Card Discovery
+## KO / 12-hour gameplay lock
 
-Starter card cũ đã trở thành **Discovery Card**. Người chơi mới bắt đầu với collection trống.
-
-Adventure đầu tiên luôn là `Con đường đầu tiên`, cho người chơi khám phá một trong ba Card cơ bản.
-
-Các Card hiếm hơn xuất hiện qua điều kiện Adventure:
-
-- Moon Seer
-- Thorn Beast
-- Frost Mage
-- Ancient Guardian
-- Blood Moon
-
-### PvE
-
-Nếu người chơi chưa có Card, `-battle` bị khóa và hướng dẫn họ khám phá Card trước.
-
-Card tham chiến nhận:
-
-- Battles +1
-- Bond +2
-- mỗi 5 trận: Level +1
-- Memory được cập nhật
-
-## Railway
-
-Giữ nguyên PostgreSQL của V1:
-
-```bash
-npm install
-npm run build
-npm start
-```
-
-`start` chạy `prisma db push` trước khi bot khởi động.
+If a player's HP reaches exactly 0, the player is marked KO and all gameplay actions are locked for 12 hours. Profile remains available so the player can see the recovery timer. After the lock expires, the first gameplay attempt automatically restores HP to max HP and clears the lock.

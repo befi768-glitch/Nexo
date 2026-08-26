@@ -1,12 +1,12 @@
 {
-  "name": "pqt-rpg-v2.5",
-  "version": "2.5.0",
+  "name": "pqt-rpg-v2.8",
+  "version": "2.8.0",
   "private": true,
   "type": "module",
   "scripts": {
     "dev": "tsx src/index.ts",
-    "build": "PRISMA_HIDE_UPDATE_MESSAGE=1 prisma generate && tsc",
-    "start": "PRISMA_HIDE_UPDATE_MESSAGE=1 prisma db push --accept-data-loss && node dist/index.js",
+    "build": "prisma generate && tsc",
+    "start": "prisma db push --skip-generate && node dist/index.js",
     "db:generate": "prisma generate",
     "db:push": "prisma db push"
   },

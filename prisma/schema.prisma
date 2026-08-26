@@ -12,7 +12,7 @@ model Player {
   discordId     String       @unique
   name          String
   level         Int          @default(1)
-  xp            Int          @default(0)
+  xp            Int           @default(0)
   hp            Int          @default(100)
   maxHp         Int          @default(100)
   attack        Int          @default(10)
@@ -25,8 +25,13 @@ model Player {
   knowledge     Int          @default(0)
   createdAt     DateTime     @default(now())
   updatedAt     DateTime     @updatedAt
+  gameplayLockedUntil DateTime?
   cards         PlayerCard[]
   choices       ChoiceLog[]
+  adventureSessions AdventureSession[]
+  memories     PlayerMemory[]
+  factions     FactionStanding[]
+  exploration  ExplorationState?
 }
 
 model Card {
@@ -52,7 +57,6 @@ model PlayerCard {
   memory    String   @default("")
   player    Player   @relation(fields: [playerId], references: [id], onDelete: Cascade)
   card      Card     @relation(fields: [cardId], references: [id], onDelete: Cascade)
-
   @@unique([playerId, cardId])
 }
 
@@ -64,9 +68,30 @@ model ChoiceLog {
   result    String
   createdAt DateTime @default(now())
   player    Player   @relation(fields: [playerId], references: [id], onDelete: Cascade)
-
   @@index([playerId, createdAt])
   @@index([playerId, eventId])
+  @@unique([playerId, eventId])
+}
+
+model PlayerMemory {
+  id        String   @id @default(cuid())
+  playerId  String
+  key       String
+  value     String   @default("true")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  player    Player   @relation(fields: [playerId], references: [id], onDelete: Cascade)
+  @@unique([playerId, key])
+  @@index([playerId, updatedAt])
+}
+
+model FactionStanding {
+  id        String   @id @default(cuid())
+  playerId  String
+  factionId String
+  value     Int      @default(0)
+  player    Player   @relation(fields: [playerId], references: [id], onDelete: Cascade)
+  @@unique([playerId, factionId])
 }
 
 model WorldState {
@@ -74,6 +99,54 @@ model WorldState {
   guildId      String   @unique
   forestDanger Int      @default(20)
   forestTrust  Int      @default(50)
+  activeEvent  String?
+  eventEndsAt  DateTime?
+  worldDay     Int      @default(1)
   updatedAt    DateTime @updatedAt
   createdAt    DateTime @default(now())
+  events       WorldEvent[]
+}
+
+model WorldEvent {
+  id          String   @id @default(cuid())
+  guildId     String
+  type        String
+  title       String
+  description String
+  startedAt   DateTime @default(now())
+  endedAt     DateTime?
+  world       WorldState @relation(fields: [guildId], references: [guildId], onDelete: Cascade)
+  @@index([guildId, startedAt])
+}
+
+enum AdventureSessionStatus {
+  ACTIVE
+  COMPLETED
+  EXPIRED
+}
+
+model AdventureSession {
+  id          String   @id @default(cuid())
+  playerId    String
+  guildId     String
+  adventureId String
+  status      AdventureSessionStatus @default(ACTIVE)
+  expiresAt   DateTime
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  completedAt DateTime?
+  player      Player   @relation(fields: [playerId], references: [id], onDelete: Cascade)
+  @@index([playerId, status])
+  @@index([expiresAt])
+  @@unique([playerId, status])
+}
+
+model ExplorationState {
+  id             String   @id @default(cuid())
+  playerId       String   @unique
+  charges        Int      @default(5)
+  maxCharges     Int      @default(5)
+  rechargeAt     DateTime?
+  updatedAt      DateTime @updatedAt
+  player         Player   @relation(fields: [playerId], references: [id], onDelete: Cascade)
 }
