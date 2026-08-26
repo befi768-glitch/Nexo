@@ -137,7 +137,6 @@ model AdventureSession {
   player      Player   @relation(fields: [playerId], references: [id], onDelete: Cascade)
   @@index([playerId, status])
   @@index([expiresAt])
-  @@unique([playerId, status])
 }
 
 model ExplorationState {
