@@ -70,7 +70,6 @@ model ChoiceLog {
   player    Player   @relation(fields: [playerId], references: [id], onDelete: Cascade)
   @@index([playerId, createdAt])
   @@index([playerId, eventId])
-  @@unique([playerId, eventId])
 }
 
 model PlayerMemory {
